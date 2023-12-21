@@ -92,7 +92,7 @@ def main():
             """, unsafe_allow_html=True)
     header, main, map = st.container(), st.container(), st.container()
 
-    # data = load_data()
+    data = load_data()
     # cities_, provinces_, data_= [''], [''], {}
     # for row in data.iterrows():
     #     city, province = row[1]['city'], row[1]['province']
