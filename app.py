@@ -1,4 +1,5 @@
 
+import googlemaps
 import pandas as pd
 import streamlit as st
 st.set_page_config('Available Properties @ Basico', layout='wide')
@@ -12,16 +13,18 @@ from streamlit.components.v1 import html   # use this to add js
 def load_data():
     """ Loads all the data needed
     """
-    # add city and provicne columns to new_df
+    gmaps = googlemaps.Client(key='AIzaSyDY78bLC1sKoTZrbeFK9hVcSsHt6r2JCK0')
     df = pd.read_csv("activos_prx_lat.csv", encoding='utf-8', sep=";")
-    # new_df = pd.DataFrame(columns=['lat', 'lon'])
-    # for index, lat_long in enumerate(df["uwgoogle"]):
-    #     try:
-    #         new_df.loc[index+1] = [float(i.strip()) for i in lat_long.split(',')]
-    #     except:
-    #         continue
-    # return new_df.dropna()
-    return list(df['uwgoogle'].dropna().unique())
+    new_df = pd.DataFrame(columns=['latlon', 'city', 'province'])
+    for index, lat_long in enumerate(df["uwgoogle"].dropna().unique()):
+        # new_df.loc[index+1] = [float(i.strip()) for i in lat_long.split(',')]
+        reverse_geocode_result = gmaps.reverse_geocode((lat_long))[0]['address_components']
+        new_df.loc[index+1] = [
+                                lat_long, 
+                                reverse_geocode_result[2]['long_name'].lower(), 
+                                reverse_geocode_result[3]['long_name'].lower()
+                            ]
+    return new_df
 
 
 def generate_map(city, province, st_column):
@@ -29,8 +32,12 @@ def generate_map(city, province, st_column):
     """
     # filter the data df by city and province
     markers = ""
-    data = load_data()
-    for position in data:
+    df = load_data()
+    if province != '':
+        df = df[df['province']==province.lower()]
+    if city != '':
+        df = df[df['city']==city.lower()]
+    for position in df['latlon']:
         marker_template = f'<gmp-advanced-marker position="{position}"></gmp-advanced-marker> '
         markers += marker_template
     
@@ -85,6 +92,19 @@ def main():
             """, unsafe_allow_html=True)
     header, main, map = st.container(), st.container(), st.container()
 
+    # data = load_data()
+    # cities_, provinces_, data_= [''], [''], {}
+    # for row in data.iterrows():
+    #     city, province = row[1]['city'], row[1]['province']
+    #     if province not in data_:
+    #         data_[province] = [city]
+    #     if city not in data_[province]:
+    #         data_[province] += [city]
+    # provinces_ += data_.keys()
+
+    cities_ = [''] + [i[0].upper() + i[1:] for i in data['city'].unique()]
+    provinces_ = [''] + [i[0].upper() + i[1:] for i in data['province'].unique()]
+
     with header:
         # you only use the title once
         st.markdown("<h1 style='text-align: center;'>Available Properties @ Basico</h1>", unsafe_allow_html=True)
@@ -98,10 +118,10 @@ def main():
         submain.markdown("<h4>Filter By:</h4>", unsafe_allow_html=True)
         city, province = '', ''
         cities = submain.columns(1)[0]
-        city = cities.selectbox(label="City", options=['', 'city1', 'city2', 'city3'])
+        city = cities.selectbox(label="City", options=cities_)
 
         provinces = submain.columns(1)[0]
-        province = provinces.selectbox(label="Province", options=['', 'province1', 'province2', 'province3'])
+        province = provinces.selectbox(label="Province", options=provinces_)
 
         # Add some space
         with submain.columns(1)[0]:
