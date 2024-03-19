@@ -13,7 +13,7 @@ from streamlit.components.v1 import html   # use this to add js
 def load_data():
     """ Loads all the data needed
     """
-    gmaps = googlemaps.Client(key='AIzaSyDY78bLC1sKoTZrbeFK9hVcSsHt6r2JCK0')
+    gmaps = googlemaps.Client(key='{put key here}')
     df = pd.read_csv("activos_prx_lat.csv", encoding='utf-8', sep=";")
     new_df = pd.DataFrame(columns=['latlon', 'city', 'province'])
     for index, lat_long in enumerate(df["uwgoogle"].dropna().unique()):
@@ -46,7 +46,7 @@ def generate_map(city, province, st_column):
                 <head>
                     <title>Basico Properties</title>
                     <!-- The callback parameter is required, so we use console.debug as a noop -->
-                    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDY78bLC1sKoTZrbeFK9hVcSsHt6r2JCK0&callback=console.debug&libraries=maps,marker&v=beta">
+                    <script async src="https://maps.googleapis.com/maps/api/js?key={put key here}&callback=console.debug&libraries=maps,marker&v=beta">
                     </script>
                     <style>
                     /* Always set the map height explicitly to define the size of the div
